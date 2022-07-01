@@ -1,0 +1,119 @@
+<html>
+
+<head>
+    <title>XML thingy</title>
+    <style>
+        table {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding-left: 5px;
+            padding-right: 40px;
+        }
+
+        td:first-child {
+            border-right: 1px solid black;
+            padding-right: 5px;
+            text-align: right;
+        }
+        
+        div {
+            display: inline;
+            white-space: pre;
+        }
+    </style>
+    <script>
+        var dark = {
+            background:"#2e2e2f",
+            line_number:"#9c9c9c",
+            tag:"#569cd6",
+            text:"whitesmoke",
+            value:"#ce9178",
+            separator:"#3f3f40"
+        };
+
+        var light = {
+            background:"#ffffff",
+            line_number:"#000000",
+            tag:"#800000",
+            text:"#000000",
+            value:"#0000ff",
+            separator:"#3f3f40"
+        };
+
+        function createEditor(container, code, mode) {
+            let colors = {};
+            if(mode=="dark"){
+                colors=dark;
+            }else{
+                colors=light;
+            }
+
+            console.log(colors);
+
+            let editor = document.createElement("table");
+            editor.style.backgroundColor=colors["background"];
+
+            let lines = code.split(/\r?\n/);
+            for (let i = 0; i < lines.length; i++) {
+                new_row = editor.insertRow(i);
+                line_number = new_row.insertCell(0);
+                line_code = new_row.insertCell(1);
+
+                //Split by tag beginning and end
+                let split_by_tag = lines[i].split(/(\<(?<=\<)[^\>]*\>)/g);
+
+                for (let j = 0; j < split_by_tag.length; j++) {
+                    let text = document.createElement("div");
+
+                    if (split_by_tag[j][0] == "<") {
+                        //Check for attributes
+                        let split_by_quotes = split_by_tag[j].split(/([""])/);
+                        let isValue = false;
+                        for (let k = 0; k < split_by_quotes.length; k++) {
+                            let tag_text = document.createElement("div");
+                            if (split_by_quotes[k] == "\"") {
+                                isValue = !isValue;
+                                tag_text.style.color = colors["value"];
+                            } else {
+                                isValue ? tag_text.style.color = colors["value"] : tag_text.style.color = colors["tag"];
+                            }
+
+                            tag_text.innerText = split_by_quotes[k];
+                            text.append(tag_text);
+                        }
+                    } else {
+                        text.style.color = colors["text"];
+                        text.innerText = split_by_tag[j];
+                    }
+
+                    line_code.append(text);
+                }
+
+                line_number.style.color = colors["line_number"];
+                line_number.style.borderRight="1px solid "+colors["separator"];
+                line_number.innerHTML = i;
+            }
+
+            container.innerHTML = "";
+            container.append(editor);
+        }
+
+        function run() {
+            let enableDark=document.getElementById("dark").checked;
+            console.log(enableDark?"dark":"light");
+            createEditor(document.getElementById("editor"), document.getElementById("input").value,enableDark?"dark":"light");
+        }
+    </script>
+</head>
+
+<body>
+    <textarea name="" id="input" cols="30" rows="10"></textarea>
+    <button onclick="run()">Press here</button>
+    <label for="dark">Enable dark mode</label><input type="checkbox" name="dark" id="dark">
+    <div id="editor"></div>
+</body>
+
+</html>
